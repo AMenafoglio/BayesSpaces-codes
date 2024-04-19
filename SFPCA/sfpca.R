@@ -1,13 +1,13 @@
 ################################################################
 ###### Simplicial functional principle component analysis ######
 ################################################################
-######### Authors: A. Menafoglio, R. Talska, I. Pavlu ##########
+################### Author: A. Menafoglio ######################
 ################################################################
 
 rm(list=ls())
 
 ###### settings, packages, functions ######
-setwd()
+setwd("")
 
 library(robCompositions)
 library(fda)
@@ -17,10 +17,10 @@ source("SmoothingSpline.R")
 
 clr2density <- function(z, z_step, clr) 
 {   # Inverse of clr transformation 
-  # Input: z = grid of point defining the abscissa 
-  #        z_step = step of the grid of the abscissa
-  #        clr = grid evaluation of the clr transformed density
-  # Output: grid evaluation of the density
+    # Input: z = grid of point defining the abscissa 
+    #        z_step = step of the grid of the abscissa
+    #        clr = grid evaluation of the clr transformed density
+    # Output: grid evaluation of the density
   if(is.fd(clr))
     return(exp(eval.fd(z,clr))/trapzc(z_step,exp(eval.fd(z,clr))))
   if(!is.fd(clr))
@@ -29,8 +29,8 @@ clr2density <- function(z, z_step, clr)
 
 trapzc<-function(step,y) 
 {   # Numerical integration via trapezoidal formula
-  # Input: y = grid evaluation of the function
-  #        z_step = step of the grid
+    # Input: y = grid evaluation of the function
+    #        z_step = step of the grid
   int<-step*(0.5*y[1]+sum(y[2:(length(y)-1)]) + 0.5*y[length(y)])
   return (int)
 }
@@ -76,7 +76,7 @@ predictor.clr = cenLR((densities))$x.clr
 ###### graphs I  ######
 ### clr transformed densities + (original) densities
 options(scipen = 1)
-par(mfcol=c(1,2))
+par(mfcol=c(2,1))
 
 matplot(exp(centers),t(predictor.clr),log="x",lty=1:length(centers), type="l",xlab = expression (paste("particle size (",mu,"m)")),ylab="clr density - not smoothed",col="darkblue",pch=16)
 abline(h=0,col="darkred")
@@ -95,7 +95,7 @@ ch = 1
 t =c(t(centers))
 
 
-
+par(mfcol=c(2,1))
 ###### SmoothingSpline ######
 #generating z-coeficients for B-spline basis
 #one observation
@@ -138,7 +138,7 @@ for (i in 1:N)
   data = cbind(data, clr2density(t.fine, t.step, data.l[,i])) #1000*80
 }
 
-par(mfcol=c(1,2))
+par(mfcol=c(2,1))
 matplot(exp(t.fine),data.l,log="x", 
         lty=1:N, type="l",las=1,cex.lab=1,cex.axis=1.2,col=rainbow(N),
         ylab="clr density - smoothed",xlab = expression (paste("log of particle size (",mu,"m)")))
@@ -158,7 +158,7 @@ b_coef = t(ZsplineBasis(knots = knots,k)$D)%*%ZsplineBasis(knots = knots,k)$K%*%
 B = create.bspline.basis(range(knots), nbasis = dim(z_coef)[1]+1,norder=k,breaks=knots)
 fd.data = fd(b_coef,B) 
 
-par(mfcol=c(1,2))
+par(mfcol=c(2,1))
 matplot(exp(t.fine),data.l,log="x", 
         lty=1:N, type="l",las=1,cex.lab=1,cex.axis=1.2,col=rainbow(N),
         ylab="clr density - smoothed",xlab = expression (paste("particle size (",mu,"m)")))
@@ -175,11 +175,11 @@ dev.off()
 
 
 # Estimation of the mean and of the covariance function
-layout(cbind(1,2))
-plot.fd(fd.data,xlab="log (particle size)",ylab="clr density",col=rainbow(N))
-lines(mean(fd.data),lwd=2,col="darkblue")
+layout(rbind(1,2))
+plot.fd(fd.data,xlab="log (particle size)",ylab="clr density")
+lines(mean(fd.data),lwd=2)
 eval.1 <- eval.fd(t.fine,fd.data)
-image.plot(cov(t(eval.1)))
+image.plot(t(cov(t(eval.1))[100:1,]))
 
 ##### PCA #####
 layout(1)
@@ -193,10 +193,10 @@ pca.l <- pca.fd(fd.data,nharm=5,centerfns=TRUE)
 layout(rbind(1,2))
 plot(pca.l$values[1:6],xlab='j',ylab='Eigenvalues')
 plot(cumsum(pca.l$values)[1:6]/sum(pca.l$values),xlab='j',ylab='CPV',ylim=c(0.8,1))
-#cumulative percentage of variability
+  #cumulative percentage of variability
 
 # first two principal components
-layout(cbind(1,2))
+layout(rbind(1,2))
 plot(pca.l$harmonics[1,],col=1,xlab="log (particle size)",ylab='PC1',lwd=2)
 plot(pca.l$harmonics[2,],col=2,xlab="log (particle size)",ylab='PC2',lwd=2)
 
